@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.5.31"
     application
 }
 
@@ -40,6 +40,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.4.1")
     implementation("org.jetbrains.skiko:skiko-jvm-runtime-$target:$version")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.1")
+    implementation("com.github.ajalt.clikt:clikt:3.2.0")
     testImplementation(kotlin("test"))
 }
 

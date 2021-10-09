@@ -9,10 +9,23 @@ import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import javax.swing.WindowConstants
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.output.*
+import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.arguments.*
+import com.github.ajalt.clikt.parameters.types.enum
 
-fun main() {
-    createWindow("pf-2021-viz")
+
+class CLI : CliktCommand() {
+    val title: String? by option(help="window name")
+    override fun run() {
+        createWindow("pf-2021-viz")
+    }
 }
+
+fun main(args: Array<String>) = CLI().main(args)
 
 fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     val window = SkiaWindow()
