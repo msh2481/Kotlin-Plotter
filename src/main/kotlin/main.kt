@@ -21,8 +21,10 @@ import kotlin.system.exitProcess
  * 2d kernel estimation, scatter, line, diagram
  */
 
+fun prettyTime() = Clock.System.now().toString().substring(0, 19).replace(':', '-')
+
 object Log {
-    val file = File("log${Clock.System.now().toString().substring(0, 19).replace(':', '-')}.txt")
+    val file = File("log${prettyTime()}.txt")
     val tagsCounter: MutableMap<SortedSet<String>, Int> = mutableMapOf()
     var predicate : (Array<out String>) -> Boolean = fun(tags: Array<out String>): Boolean {
         val tagSet = tags.toSortedSet()
@@ -35,12 +37,14 @@ object Log {
     }
     operator fun invoke(message: String, vararg tags: String) {
         if (predicate(tags)) {
-            file.appendText("${Clock.System.now()} | ${tags.toList()} | $message\n")
+            file.appendText("${prettyTime()} | ${tags.toList()} | $message\n")
         }
     }
 }
 
-fun readCSV(filename: String): List<Pair<String, List<String>>> {
+data class NamedList(val name: String, val data: List<String>)
+
+fun readCSV(filename: String): List<NamedList> {
     Log("starting with filename=$filename", "in readCSV")
     val matrix: List<List<String>> = File(filename).readLines().map{ it.split(',') }
     val n = matrix.size
@@ -57,14 +61,14 @@ fun readCSV(filename: String): List<Pair<String, List<String>>> {
             return listOf()
         }
     }
-    Log("readed matrix $n x $m", "in readCSV")
-    val dataframe = mutableListOf<Pair<String, List<String>>>()
+    Log("read matrix $n x $m", "in readCSV")
+    val dataframe = mutableListOf<NamedList>()
     for (j in 0..m-1) {
         val data = mutableListOf<String>()
         for (i in 1..n-1) {
             data.add(matrix[i][j])
         }
-        dataframe.add(matrix[0][j] to data)
+        dataframe.add(NamedList(matrix[0][j], data))
     }
     return dataframe
 }
@@ -143,13 +147,71 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
             val df = readCSV(requireNotNull(parsedArgs["--data"]){"--data should be not null since parseArgs"})
             val n = df.size
             if (n < 2) {
-                Log("Need at least to data series for scatter plot but got $n", "in scatter", "error")
+                Log("Need at least 2 data series for scatter plot but got $n", "in scatter", "error")
                 println("Need at least to data series for scatter plot but got $n")
                 return
             }
-            val m = df[0].second.size
-            for (i in 0..m-1) {
-                canvas.drawCircle(df[0].second[i].toFloat(), df[1].second[i].toFloat(), 3f, paint)
+            val m = df[0].data.size
+            if (m == 0) {
+                Log("Need at least one point but got empty series", "in scatter", "error")
+                println("Need at least one point but got empty series")
+                return
+            }
+            var minX : Float? = null
+            var maxX : Float? = null
+            var minY : Float? = null
+            var maxY : Float? = null
+            for (series in 0..n-1) {
+                for (point in 0..m-1) {
+                    val cur = df[series].data[point].toFloat()
+                    if (cur == null) {
+                        Log("$point-th point of $series-th series isn't float", "in scatter", "error")
+                        println("$point-th point of $series-th series isn't float")
+                        return
+                    }
+                    if (series == 0) {
+                        if (minX == null || minX > cur) {
+                            minX = cur
+                        }
+                        if (maxX == null || maxX < cur) {
+                            maxX = cur
+                        }
+                    } else {
+                        if (minY == null || minY > cur) {
+                            minY = cur
+                        }
+                        if (maxY == null || maxY < cur) {
+                            maxY = cur
+                        }
+                    }
+                }
+            }
+            requireNotNull(minX) { "minX != null" }
+            requireNotNull(maxX) { "maxX != null" }
+            requireNotNull(minY) { "minY != null" }
+            requireNotNull(maxY) { "maxY != null" }
+
+            if (minX == maxX) {
+                minX -= 1
+                maxX += 1
+            }
+            if (minY == maxY) {
+                minY -= 1
+                maxY += 1
+            }
+            val showMinX = 0.1 * w
+            val showMaxX = 0.9 * w
+            val ly = 0.1 * h
+            val ry = 0.9 * h
+
+            for (ySeries in 1..n-1) {
+                for (point in 0..m-1) {
+                    val x0 = df[0].data[point].toFloat()
+                    val y0 = df[ySeries].data[point].toFloat()
+                    val x = lx + (x0 - sortedValues.first()) / (sortedValues.last() - sortedValues.first()) * (rx - lx)
+
+                    canvas.drawCircle(, , 3f, paint)
+                }
             }
         }
         val plotType = requireNotNull(parsedArgs["--type"]) {"--type should be not null since parseArgs"}
