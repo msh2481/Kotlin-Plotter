@@ -14,6 +14,8 @@ import java.io.File
 import java.util.*
 import javax.swing.WindowConstants
 import kotlin.system.exitProcess
+import kotlin.random.Random
+
 
 /** TODO
  * Docs, readme
@@ -49,7 +51,7 @@ fun readCSV(filename: String): List<NamedList> {
     val matrix: List<List<String>> = File(filename).readLines().map{ it.split(',') }
     val n = matrix.size
     if (n == 0) {
-        Log("The file is empty", "readCSV", "in readCSV", "error")
+        Log("The file is empty", "in readCSV", "error")
         println("The file is empty")
         return listOf()
     }
@@ -163,7 +165,7 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
             var maxY : Float? = null
             for (series in 0..n-1) {
                 for (point in 0..m-1) {
-                    val cur = df[series].data[point].toFloat()
+                    val cur = df[series].data[point].toFloatOrNull()
                     if (cur == null) {
                         Log("$point-th point of $series-th series isn't float", "in scatter", "error")
                         println("$point-th point of $series-th series isn't float")
@@ -199,18 +201,20 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
                 minY -= 1
                 maxY += 1
             }
-            val showMinX = 0.1 * w
-            val showMaxX = 0.9 * w
-            val ly = 0.1 * h
-            val ry = 0.9 * h
+            val displayMinX = 0.1 * w
+            val displayMaxX = 0.9 * w
+            val displayMinY = 0.1 * h
+            val displayMaxY = 0.9 * h
 
+            val seededRandom = Random(19)
             for (ySeries in 1..n-1) {
+                val currentPaint = Paint().setARGB(255, seededRandom.nextInt(256), seededRandom.nextInt(256), seededRandom.nextInt(256))
                 for (point in 0..m-1) {
                     val x0 = df[0].data[point].toFloat()
                     val y0 = df[ySeries].data[point].toFloat()
-                    val x = lx + (x0 - sortedValues.first()) / (sortedValues.last() - sortedValues.first()) * (rx - lx)
-
-                    canvas.drawCircle(, , 3f, paint)
+                    val x = displayMinX + (x0 - minX) / (maxX - minX) * (displayMaxX - displayMinX)
+                    val y = displayMinY + (y0 - minY) / (maxY - minY) * (displayMaxY - displayMinY)
+                    canvas.drawCircle(x.toFloat(), y.toFloat(), 3f, currentPaint)
                 }
             }
         }
