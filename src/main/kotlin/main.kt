@@ -11,12 +11,26 @@ import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import java.io.File
+import java.util.*
 import javax.swing.WindowConstants
+import kotlin.system.exitProcess
+
+/** TODO
+ * Docs, readme
+ * Files
+ * 2d kernel estimation, scatter, line, diagram
+ */
 
 object Log {
     val file = File("log${Clock.System.now().toString().substring(0, 19).replace(':', '-')}.txt")
-
+    val tagsCounter: MutableMap<SortedSet<String>, Int> = mutableMapOf()
     var predicate : (Array<out String>) -> Boolean = fun(tags: Array<out String>): Boolean {
+        val tagSet = tags.toSortedSet()
+        val prevCnt = tagsCounter.getOrDefault(tagSet, 0)
+        tagsCounter[tagSet] = prevCnt + 1
+        if (prevCnt > 10) {
+            return false
+        }
         return true
     }
     operator fun invoke(message: String, vararg tags: String) {
@@ -26,25 +40,68 @@ object Log {
     }
 }
 
+fun readCSV(filename: String): List<Pair<String, List<String>>> {
+    Log("starting with filename=$filename", "in readCSV")
+    val matrix: List<List<String>> = File(filename).readLines().map{ it.split(',') }
+    val n = matrix.size
+    if (n == 0) {
+        Log("The file is empty", "readCSV", "in readCSV", "error")
+        println("The file is empty")
+        return listOf()
+    }
+    val m = matrix[0].size
+    matrix.forEach {
+        if (it.size != m) {
+            Log("First row has $m columns, but now found row with ${it.size} columns", "in readCSV", "error")
+            println("First row has $m columns, but now found row with ${it.size} columns")
+            return listOf()
+        }
+    }
+    Log("readed matrix $n x $m", "in readCSV")
+    val dataframe = mutableListOf<Pair<String, List<String>>>()
+    for (j in 0..m-1) {
+        val data = mutableListOf<String>()
+        for (i in 1..n-1) {
+            data.add(matrix[i][j])
+        }
+        dataframe.add(matrix[0][j] to data)
+    }
+    return dataframe
+}
+
 val help = """
     $ plot --type=scatter --data=data.csv --output=plot.png
 """.trimIndent()
 
 fun parseArgs(args: Array<String>) : Map<String, String> {
+    Log("starting", "in parseArgs")
     val argsMap = mutableMapOf<String, String>()
     for (argument in args) {
         if (argument.count{ it == '='} != 1) {
+            Log("Can't understand argument (there should be exactly one '='): $argument", "in parseArgs", "warn")
             println("Can't understand argument (there should be exactly one '='): $argument")
             continue
         }
         val (key, value) = argument.split('=')
+        argsMap[key] = value
         Log("$key = $value", "in parseArgs")
     }
+    for (mandatory in listOf("--type", "--data", "--output")) {
+        if (argsMap[mandatory] == null) {
+            Log("Missed mandatory argument $mandatory, terminating", "in parseArgs", "error")
+            println("Missed mandatory argument $mandatory, terminating")
+            exitProcess(0)
+        }
+    }
+    Log("finishing", "in parseArgs")
     return argsMap
 }
 
+var parsedArgs : Map<String, String> = mutableMapOf()
+
 fun main(args: Array<String>) {
     Log("starting", "in main")
+    parsedArgs = parseArgs(args)
     createWindow("Your plot")
     Log("finishing", "in main")
 }
@@ -74,14 +131,38 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
     }
 
     override fun onRender(canvas: Canvas, width: Int, height: Int, nanoTime: Long) {
+        Log("starting", "in onRender")
         val contentScale = layer.contentScale
         canvas.scale(contentScale, contentScale)
         val w = (width / contentScale).toInt()
         val h = (height / contentScale).toInt()
 
-        // РИСОВАНИЕ
-
+        val plots = mutableMapOf<String, () -> Unit >()
+        plots["scatter"] = fun() {
+            Log("starting", "in scatter")
+            val df = readCSV(requireNotNull(parsedArgs["--data"]){"--data should be not null since parseArgs"})
+            val n = df.size
+            if (n < 2) {
+                Log("Need at least to data series for scatter plot but got $n", "in scatter", "error")
+                println("Need at least to data series for scatter plot but got $n")
+                return
+            }
+            val m = df[0].second.size
+            for (i in 0..m-1) {
+                canvas.drawCircle(df[0].second[i].toFloat(), df[1].second[i].toFloat(), 3f, paint)
+            }
+        }
+        val plotType = requireNotNull(parsedArgs["--type"]) {"--type should be not null since parseArgs"}
+        val plotFunc = plots[plotType]
+        if (plotFunc == null) {
+            Log("No such plot type ($plotType), terminating", "in onRender", "error")
+            println("No such plot type ($plotType), terminating")
+            exitProcess(0)
+        }
+        Log("calling plotFunc", "in onRender")
+        plotFunc()
         layer.needRedraw()
+        Log("starting", "in onRender")
     }
 }
 
