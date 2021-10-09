@@ -2,8 +2,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import org.jetbrains.skija.*
+import org.jetbrains.skija.Canvas._nReadPixels
+import org.jetbrains.skija.Canvas._nWritePixels
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
@@ -11,10 +12,16 @@ import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import java.io.File
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.channels.ByteChannel
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.util.*
+import java.util.Optional.of
 import javax.swing.WindowConstants
+import kotlin.io.path.Path
 import kotlin.system.exitProcess
-import kotlin.random.Random
 
 
 /** TODO
@@ -144,80 +151,9 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         val h = (height / contentScale).toInt()
 
         val plots = mutableMapOf<String, () -> Unit >()
-        plots["scatter"] = fun() {
-            Log("starting", "in scatter")
-            val df = readCSV(requireNotNull(parsedArgs["--data"]){"--data should be not null since parseArgs"})
-            val n = df.size
-            if (n < 2) {
-                Log("Need at least 2 data series for scatter plot but got $n", "in scatter", "error")
-                println("Need at least to data series for scatter plot but got $n")
-                return
-            }
-            val m = df[0].data.size
-            if (m == 0) {
-                Log("Need at least one point but got empty series", "in scatter", "error")
-                println("Need at least one point but got empty series")
-                return
-            }
-            var minX : Float? = null
-            var maxX : Float? = null
-            var minY : Float? = null
-            var maxY : Float? = null
-            for (series in 0..n-1) {
-                for (point in 0..m-1) {
-                    val cur = df[series].data[point].toFloatOrNull()
-                    if (cur == null) {
-                        Log("$point-th point of $series-th series isn't float", "in scatter", "error")
-                        println("$point-th point of $series-th series isn't float")
-                        return
-                    }
-                    if (series == 0) {
-                        if (minX == null || minX > cur) {
-                            minX = cur
-                        }
-                        if (maxX == null || maxX < cur) {
-                            maxX = cur
-                        }
-                    } else {
-                        if (minY == null || minY > cur) {
-                            minY = cur
-                        }
-                        if (maxY == null || maxY < cur) {
-                            maxY = cur
-                        }
-                    }
-                }
-            }
-            requireNotNull(minX) { "minX != null" }
-            requireNotNull(maxX) { "maxX != null" }
-            requireNotNull(minY) { "minY != null" }
-            requireNotNull(maxY) { "maxY != null" }
+        val surface = Surface.makeRasterN32Premul(800, 600)
+        plots["scatter"] = { scatter(canvas, surface.canvas, w, h) }
 
-            if (minX == maxX) {
-                minX -= 1
-                maxX += 1
-            }
-            if (minY == maxY) {
-                minY -= 1
-                maxY += 1
-            }
-            val displayMinX = 0.1 * w
-            val displayMaxX = 0.9 * w
-            val displayMinY = 0.1 * h
-            val displayMaxY = 0.9 * h
-
-            val seededRandom = Random(19)
-            for (ySeries in 1..n-1) {
-                val currentPaint = Paint().setARGB(255, seededRandom.nextInt(256), seededRandom.nextInt(256), seededRandom.nextInt(256))
-                for (point in 0..m-1) {
-                    val x0 = df[0].data[point].toFloat()
-                    val y0 = df[ySeries].data[point].toFloat()
-                    val x = displayMinX + (x0 - minX) / (maxX - minX) * (displayMaxX - displayMinX)
-                    val y = displayMinY + (y0 - minY) / (maxY - minY) * (displayMaxY - displayMinY)
-                    canvas.drawCircle(x.toFloat(), y.toFloat(), 3f, currentPaint)
-                }
-            }
-        }
         val plotType = requireNotNull(parsedArgs["--type"]) {"--type should be not null since parseArgs"}
         val plotFunc = plots[plotType]
         if (plotFunc == null) {
@@ -228,6 +164,24 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         Log("calling plotFunc", "in onRender")
         plotFunc()
         layer.needRedraw()
+        Log("writing output file", "in onRender")
+        val image = surface.makeImageSnapshot();
+        val pngData = image.encodeToData(EncodedImageFormat.PNG)
+        val pngBytes: ByteBuffer = pngData!!.toByteBuffer()
+        try {
+            val output = requireNotNull(parsedArgs["--output"]) {"--output should be not null since parseArgs"}
+            val path = Path(output)
+            val channel: ByteChannel = Files.newByteChannel(
+                path,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
+            )
+            channel.write(pngBytes)
+            channel.close()
+        } catch (e: IOException) {
+            println("Failed to write output file")
+            Log("caught $e", "in onRender", "error", "exception")
+            exitProcess(0)
+        }
         Log("starting", "in onRender")
     }
 }
