@@ -1,6 +1,8 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.jetbrains.skija.*
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkiaRenderer
@@ -8,24 +10,44 @@ import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
+import java.io.File
 import javax.swing.WindowConstants
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.NoOpCliktCommand
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.output.*
-import com.github.ajalt.clikt.parameters.options.*
-import com.github.ajalt.clikt.parameters.arguments.*
-import com.github.ajalt.clikt.parameters.types.enum
 
+object Log {
+    val file = File("log${Clock.System.now().toString().substring(0, 19).replace(':', '-')}.txt")
 
-class CLI : CliktCommand() {
-    val title: String? by option(help="window name")
-    override fun run() {
-        createWindow("pf-2021-viz")
+    var predicate : (Array<out String>) -> Boolean = fun(tags: Array<out String>): Boolean {
+        return true
+    }
+    operator fun invoke(message: String, vararg tags: String) {
+        if (predicate(tags)) {
+            file.appendText("${Clock.System.now()} | ${tags.toList()} | $message\n")
+        }
     }
 }
 
-fun main(args: Array<String>) = CLI().main(args)
+val help = """
+    $ plot --type=scatter --data=data.csv --output=plot.png
+""".trimIndent()
+
+fun parseArgs(args: Array<String>) : Map<String, String> {
+    val argsMap = mutableMapOf<String, String>()
+    for (argument in args) {
+        if (argument.count{ it == '='} != 1) {
+            println("Can't understand argument (there should be exactly one '='): $argument")
+            continue
+        }
+        val (key, value) = argument.split('=')
+        Log("$key = $value", "in parseArgs")
+    }
+    return argsMap
+}
+
+fun main(args: Array<String>) {
+    Log("starting", "in main")
+    createWindow("Your plot")
+    Log("finishing", "in main")
+}
 
 fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     val window = SkiaWindow()
