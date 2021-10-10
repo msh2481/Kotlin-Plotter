@@ -4,18 +4,18 @@ import org.jetbrains.skija.Paint
 import org.jetbrains.skija.Typeface
 import kotlin.random.Random
 
-fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
-    Log("starting", "in scatter")
+fun kde(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
+    Log("starting", "in kde")
     val df = readCSV(requireNotNull(parsedArgs["--data"]){"--data should be not null since parseArgs"})
     val n = df.size
-    if (n < 2) {
-        Log("Need at least 2 data series for scatter plot but got $n", "in scatter", "error")
-        println("Need at least 2 data series for scatter plot but got $n")
+    if (n != 2) {
+        Log("Need exactly 2 data series for kde plot but got $n", "in kde", "error")
+        println("Need exactly 2 data series for kde plot but got $n")
         return
     }
     val m = df[0].data.size
     if (m == 0) {
-        Log("Need at least one point but got empty series", "in scatter", "error")
+        Log("Need at least one point but got empty series", "in kde", "error")
         println("Need at least one point but got empty series")
         return
     }
@@ -27,7 +27,7 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
         for (point in 0..m-1) {
             val cur = df[series].data[point].toFloatOrNull()
             if (cur == null) {
-                Log("$point-th point of $series-th series isn't float", "in scatter", "error")
+                Log("$point-th point of $series-th series isn't float", "kde scatter", "error")
                 println("$point-th point of $series-th series isn't float")
                 return
             }
@@ -61,13 +61,16 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
         minY -= 1
         maxY += 1
     }
+
+    val nCells = 512
+
     val displayMinX = 0.1f * w
     val displayMaxX = 0.9f * w
     val displayMinY = 0.1f * h
     val displayMaxY = 0.9f * h
 
-    fun transformX(x: Float) : Float = displayMinX + (x - minX) / (maxX - minX) * (displayMaxX - displayMinX)
-    fun transformY(y: Float) : Float = displayMaxY + (y - minY) / (maxY - minY) * (displayMinY - displayMaxY)
+    fun transformX(xCell: Int) : Float = displayMinX + xCell.toFloat() / nCells.toFloat() * (displayMaxX - displayMinX)
+    fun transformY(yCell: Int) : Float = displayMaxY + yCell.toFloat() / nCells.toFloat() * (displayMinY - displayMaxY)
 
     fun drawThinLine(x0: Float, y0: Float, x1: Float, y1: Float) {
         val linePaint = Paint().setARGB(255, 0, 0, 0).setStrokeWidth(1f)
@@ -83,25 +86,25 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
     drawThinLine(displayMinX, displayMaxY, displayMaxX, displayMaxY)
     drawThinLine(displayMinX, displayMaxY, displayMinX, displayMinY)
     val tickW = 0.002f * (w + h)
-    getTicks(minX, maxX).forEach{ tickX ->
+    for (tickX in 0..nCells step nCells / 8) {
         drawThinLine(transformX(tickX), displayMaxY + tickW, transformX(tickX), displayMaxY)
         drawSmallText(transformX(tickX), displayMaxY + 0.05f * h, tickX.toString())
     }
-    drawSmallText(displayMaxX + 0.01f * w, displayMaxY, df.slice(0 until n step 2).map{ it.name }.toString())
-    getTicks(minY, maxY).forEach { tickY ->
+    drawSmallText(displayMaxX + 0.01f * w, displayMaxY, df[0].name)
+    for (tickY in 0..nCells step nCells / 8) {
         drawThinLine(displayMinX, transformY(tickY), displayMinX - tickW, transformY(tickY))
         drawSmallText(displayMinX - 0.05f * w, transformY(tickY), tickY.toString())
     }
-    drawSmallText(displayMinX - 0.05f * w, displayMinY, df.slice(1 until n step 2).map{ it.name }.toString())
+    drawSmallText(displayMinX - 0.01f * w, displayMinY - 0.03f * h, df[1].name)
     val seededRandom = Random(1)
 
-    df.chunked(2).forEach{ (xSeries, ySeries) ->
-        val currentPaint = Paint().setARGB(255, seededRandom.nextInt(256), seededRandom.nextInt(256), seededRandom.nextInt(256))
-        xSeries.data.zip(ySeries.data).forEach{ (xPoint, yPoint) ->
-            val x = transformX(xPoint.toFloat())
-            val y = transformY(yPoint.toFloat())
-            canvas.drawCircle(x, y, 2f, currentPaint)
-            canvas2.drawCircle(x, y, 2f, currentPaint)
-        }
-    }
+//    df.chunked(2).forEach{ (xSeries, ySeries) ->
+//        val currentPaint = Paint().setARGB(255, seededRandom.nextInt(256), seededRandom.nextInt(256), seededRandom.nextInt(256))
+//        xSeries.data.zip(ySeries.data).forEach{ (xPoint, yPoint) ->
+//            val x = transformX(xPoint.toFloat())
+//            val y = transformY(yPoint.toFloat())
+//            canvas.drawCircle(x, y, 2f, currentPaint)
+//            canvas2.drawCircle(x, y, 2f, currentPaint)
+//        }
+//    }
 }
