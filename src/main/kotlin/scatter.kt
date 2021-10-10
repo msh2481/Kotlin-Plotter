@@ -1,5 +1,8 @@
 import org.jetbrains.skija.Canvas
+import org.jetbrains.skija.Font
 import org.jetbrains.skija.Paint
+import org.jetbrains.skija.Typeface
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
@@ -59,21 +62,47 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
         minY -= 1
         maxY += 1
     }
-    val displayMinX = 0.1 * w
-    val displayMaxX = 0.9 * w
-    val displayMinY = 0.1 * h
-    val displayMaxY = 0.9 * h
+    val displayMinX = 0.1f * w
+    val displayMaxX = 0.9f * w
+    val displayMinY = 0.1f * h
+    val displayMaxY = 0.9f * h
 
+    fun transformX(x: Float) : Float = displayMinX + (x - minX) / (maxX - minX) * (displayMaxX - displayMinX)
+    fun transformY(y: Float) : Float = displayMinY + (y - minY) / (maxY - minY) * (displayMaxY - displayMinY)
+
+    fun drawThinLine(x0: Float, y0: Float, x1: Float, y1: Float) {
+        val linePaint = Paint().setARGB(255, 0, 0, 0).setStrokeWidth(1f)
+        canvas.drawLine(x0, y0, x1, y1, linePaint)
+        canvas2.drawLine(x0, y0, x1, y1, linePaint)
+    }
+    val typeface = Typeface.makeFromFile("fonts/JetBrainsMono-Regular.ttf")
+    fun drawSmallText(x: Float, y: Float, s: String) {
+        val font = Font(typeface, (h + w) * 0.008f)
+        val textPaint = Paint().setARGB(255, 0, 0, 0).setStrokeWidth(1f)
+        canvas.drawString(s, x, y, font, textPaint)
+    }
+    drawThinLine(displayMinX, displayMaxY, displayMaxX, displayMaxY)
+    drawThinLine(displayMinX, displayMaxY, displayMinX, displayMinY)
+    val tickW = 0.002f * (w + h)
+    getTicks(minX, maxX).forEach{ tickX ->
+        drawThinLine(transformX(tickX), displayMaxY + tickW, transformX(tickX), displayMaxY)
+        drawSmallText(transformX(tickX), displayMaxY + 0.05f * h, tickX.toString())
+    }
+    drawSmallText(displayMaxX + 0.01f * w, displayMaxY, df.slice(0 until n step 2).map{ it.name }.toString())
+    getTicks(minY, maxY).forEach { tickY ->
+        drawThinLine(displayMinX, transformY(tickY), displayMinX - tickW, transformY(tickY))
+        drawSmallText(displayMinX - 0.05f * w, transformY(tickY), tickY.toString())
+    }
+    drawSmallText(displayMinX - 0.05f * w, displayMinY, df.slice(1 until n step 2).map{ it.name }.toString())
     val seededRandom = Random(1)
-    for (ySeries in 1..n-1) {
+
+    df.chunked(2).forEach{ (xSeries, ySeries) ->
         val currentPaint = Paint().setARGB(255, seededRandom.nextInt(256), seededRandom.nextInt(256), seededRandom.nextInt(256))
-        for (point in 0..m-1) {
-            val x0 = df[0].data[point].toFloat()
-            val y0 = df[ySeries].data[point].toFloat()
-            val x = displayMinX + (x0 - minX) / (maxX - minX) * (displayMaxX - displayMinX)
-            val y = displayMinY + (y0 - minY) / (maxY - minY) * (displayMaxY - displayMinY)
-            canvas.drawCircle(x.toFloat(), y.toFloat(), 3f, currentPaint)
-            canvas2.drawCircle(x.toFloat(), y.toFloat(), 3f, currentPaint)
+        xSeries.data.zip(ySeries.data).forEach{ (xPoint, yPoint) ->
+            val x = transformX(xPoint.toFloat())
+            val y = transformY(yPoint.toFloat())
+            canvas.drawCircle(x, y, 2f, currentPaint)
+            canvas2.drawCircle(x, y, 2f, currentPaint)
         }
     }
 }
