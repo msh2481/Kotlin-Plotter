@@ -26,8 +26,9 @@ import kotlin.system.exitProcess
 
 /** TODO
  * Docs, readme
- * Files
- * 2d kernel estimation, scatter, line, diagram
+ * remove i, j
+ * more parameters to kde
+ * kde-average, line, histogram
  */
 
 fun prettyTime() = Clock.System.now().toString().substring(0, 19).replace(':', '-')

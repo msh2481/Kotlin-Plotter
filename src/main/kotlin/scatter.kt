@@ -97,7 +97,7 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
 
     df.chunked(2).forEach{ (xSeries, ySeries) ->
         val currentPaint = Paint().setARGB(255, seededRandom.nextInt(256), seededRandom.nextInt(256), seededRandom.nextInt(256))
-        xSeries.data.zip(ySeries.data).forEach{ (xPoint, yPoint) ->
+        (xSeries.data zip ySeries.data).forEach{ (xPoint, yPoint) ->
             val x = transformX(xPoint.toFloat())
             val y = transformY(yPoint.toFloat())
             canvas.drawCircle(x, y, 2f, currentPaint)
