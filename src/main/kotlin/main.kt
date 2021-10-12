@@ -154,7 +154,8 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         val plots = mutableMapOf<String, () -> Unit >()
         val surface = Surface.makeRasterN32Premul(800, 600)
         plots["scatter"] = { scatter(canvas, surface.canvas, w, h) }
-        plots["kde"] = { kde(canvas, surface.canvas, w, h) }
+        plots["kde-sum"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.SUM) }
+        plots["kde-average"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.AVERAGE) }
 
         val plotType = requireNotNull(parsedArgs["--type"]) {"--type should be not null since parseArgs"}
         val plotFunc = plots[plotType]
