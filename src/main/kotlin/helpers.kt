@@ -88,70 +88,32 @@ fun readData(minN: Int, maxN: Int) : List<DataSeries>? {
     return df
 }
 
-fun findXYBounds(df: List<DataSeries>) : List<Float> {
-    val n = df.size
-    val m = df[0].data.size
-    var minX : Float? = null
-    var maxX : Float? = null
-    var minY : Float? = null
-    var maxY : Float? = null
-    for (series in 0 until n) {
-        for (point in 0 until m) {
-            val cur = df[series].data[point]
-            if (series == 0) {
-                if (minX == null || minX > cur) {
-                    minX = cur
-                }
-                if (maxX == null || maxX < cur) {
-                    maxX = cur
-                }
-            } else {
-                if (minY == null || minY > cur) {
-                    minY = cur
-                }
-                if (maxY == null || maxY < cur) {
-                    maxY = cur
-                }
-            }
+fun findExtrema(sequence: List<Float>) : List<Float> {
+    require(sequence.isNotEmpty()) {"can't find extrema for empty sequence"}
+    var min : Float? = null
+    var max : Float? = null
+    for (elem in sequence) {
+        if (min == null || min > elem) {
+            min = elem
+        }
+        if (max == null || max < elem) {
+            max = elem
         }
     }
-    requireNotNull(minX) { "minX != null" }
-    requireNotNull(maxX) { "maxX != null" }
-    requireNotNull(minY) { "minY != null" }
-    requireNotNull(maxY) { "maxY != null" }
-
-    if (minX == maxX) {
-        minX -= 1
-        maxX += 1
+    requireNotNull(min) {"min != null"}
+    requireNotNull(max) {"max != null"}
+    if (min == max) {
+        min -= 1
+        max += 1
     }
-    if (minY == maxY) {
-        minY -= 1
-        maxY += 1
-    }
-    return listOf(minX, maxX, minY, maxY)
+    return listOf(min, max)
 }
 
-fun findZBounds(matrix: Array<FloatArray>) : List<Float> {
-    var minZ : Float? = null
-    var maxZ : Float? = null
-    for (row in matrix) {
-        for (z in row) {
-            if (minZ == null || minZ > z) {
-                minZ = z
-            }
-            if (maxZ == null || maxZ < z) {
-                maxZ = z
-            }
-        }
-    }
-    requireNotNull(minZ) { "minZ != null" }
-    requireNotNull(maxZ) { "maxZ != null" }
-    if (maxZ == minZ) {
-        minZ -= 1
-        maxZ += 1
-    }
-    return listOf(minZ, maxZ)
-}
+fun findXYBounds(df: List<DataSeries>, isXSeries: (Int) -> Boolean) : List<Float> =
+    findExtrema(df.filterIndexed{ idx, _ -> isXSeries(idx)}.map{ it.data }.flatten()) +
+    findExtrema(df.filterIndexed{ idx, _ -> !isXSeries(idx)}.map{ it.data }.flatten())
+
+fun findZBounds(matrix: Array<FloatArray>) : List<Float> = findExtrema(matrix.map{ it.toList() }.flatten())
 
 class AxisDrawer(
     private val canvas: Canvas,

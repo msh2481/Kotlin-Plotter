@@ -10,7 +10,7 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
         println("Expected even number of data series for scatter plot but got $n")
         return
     }
-    val (minX, maxX, minY, maxY) = findXYBounds(df)
+    val (minX, maxX, minY, maxY) = findXYBounds(df) { it % 2 == 0 }
     val drawer = AxisDrawer(canvas, canvas2, w, h, minX, maxX, minY, maxY)
 
     drawer.drawAxis("x", "y")

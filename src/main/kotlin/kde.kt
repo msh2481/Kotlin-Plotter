@@ -46,7 +46,7 @@ fun kde(canvas: Canvas, canvas2: Canvas, w: Int, h: Int, algo: KDEAlgorithm) {
         df = df + DataSeries("values", List(df[0].data.size){1f})
     }
 
-    val (minX, maxX, minY, maxY) = findXYBounds(df)
+    val (minX, maxX, minY, maxY) = findXYBounds(df) { it == 0 }
     fun xToCell(x: Float) : Int = ((x - minX) / (maxX - minX) * (resolution - 1)).roundToInt()
     fun yToCell(y: Float) : Int = ((y - minY) / (maxY - minY) * (resolution - 1)).roundToInt()
 
