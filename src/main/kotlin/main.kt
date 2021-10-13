@@ -24,7 +24,9 @@ import kotlin.system.exitProcess
 /** TODO
  * Docs, readme
  * remove i, j
- * more parameters to kde
+ * unit test interpolate, getTicks
+ * test every parameter
+ * test multiple data series
  * kde-average, line, histogram
  */
 

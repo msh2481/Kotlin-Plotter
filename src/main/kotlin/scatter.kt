@@ -13,7 +13,7 @@ fun scatter(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
     val (minX, maxX, minY, maxY) = findXYBounds(df) { it % 2 == 0 }
     val drawer = AxisDrawer(canvas, canvas2, w, h, minX, maxX, minY, maxY)
 
-    drawer.drawAxis("x", "y")
+    drawer.drawAxis(df[0].name, "")
     val seededRandom = Random(1)
     df.chunked(2).forEach{ (xSeries, ySeries) ->
         val maxColor = 256 * 256 * 256
