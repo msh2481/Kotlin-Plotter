@@ -114,6 +114,7 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         plots["scatter"] = { scatter(canvas, surface.canvas, w, h) }
         plots["kde-sum"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.SUM) }
         plots["kde-average"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.AVERAGE) }
+        plots["line"] = { line(canvas, surface.canvas, w, h) }
 
         val plotType = requireNotNull(parsedArgs["--type"]) {"--type should be not null since parseArgs"}
         val plotFunc = plots[plotType]

@@ -198,4 +198,14 @@ class AxisDrawer(
         canvas.drawCircle(transformX(x), transformY(y), r, pointPaint)
         canvas2.drawCircle(transformX(x), transformY(y), r, pointPaint)
     }
+
+    fun drawLine(p: List<Point>, color: Int, r: Float = 2f) {
+        val coords = p.map { pt ->
+            val t = Point(transformX(pt.x), transformY(pt.y))
+            listOf(t, t)
+        }.flatten().drop(1).dropLast(1).toTypedArray()
+        val linePaint = Paint().setColor(color).setStrokeWidth(r)
+        canvas.drawLines(coords, linePaint)
+        canvas2.drawLines(coords, linePaint)
+    }
 }
