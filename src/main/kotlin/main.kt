@@ -94,7 +94,7 @@ fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     window.layer.renderer = Renderer(window.layer)
     window.layer.addMouseMotionListener(MyMouseMotionAdapter)
 
-    window.preferredSize = Dimension(800, 600)
+    window.preferredSize = Dimension(800, 800)
     window.minimumSize = Dimension(100,100)
     window.pack()
     window.layer.awaitRedraw()
@@ -110,7 +110,7 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         val h = (height / contentScale).toInt()
 
         val plots = mutableMapOf<String, () -> Unit >()
-        val surface = Surface.makeRasterN32Premul(800, 600)
+        val surface = Surface.makeRasterN32Premul(800, 800)
         plots["scatter"] = { scatter(canvas, surface.canvas, w, h) }
         plots["kde-sum"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.SUM) }
         plots["kde-average"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.AVERAGE) }

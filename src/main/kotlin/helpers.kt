@@ -13,7 +13,7 @@ fun getTicks(l: Float, r: Float) : List<Float> {
     while (countTicks(k / 10) <= 10) {
         k /= 10
     }
-    if (countTicks(k / 2) <= 10) {
+    while (countTicks(k / 2) <= 10) {
         k /= 2
     }
     val result = mutableListOf<Float>()
@@ -167,13 +167,14 @@ class AxisDrawer(
     private val displayMaxX = 0.9f * w
     private val displayMinY = 0.1f * h
     private val displayMaxY = 0.9f * h
-    private val fontSize = 0.008f * (w + h)
+    private val fontSize = 0.007f * (w + h)
     private val tickW = 0.002f * (w + h)
-    private val tickCaptionOffsetRatio = 0.05f
-    private val xAxisCaptionDx = 0.01f * w
-    private val xAxisCaptionDy = 0f
-    private val yAxisCaptionDx = -0.01f * w
-    private val yAxisCaptionDy = -0.03f * h
+    private val xTickCaptionOffset = 0.03f * h
+    private val yTickCaptionOffset = 0.04f * w
+    private val xAxisCaptionX = (displayMinX + displayMaxX) / 2
+    private val xAxisCaptionY = displayMaxY + 2 * xTickCaptionOffset
+    private val yAxisCaptionX = displayMinX - 2 * yTickCaptionOffset
+    private val yAxisCaptionY = (displayMinY + displayMaxY) / 2
 
     private fun transformX(x: Float) : Float = displayMinX + (x - minX) / (maxX - minX) * (displayMaxX - displayMinX)
     private fun transformY(y: Float) : Float = displayMaxY + (y - minY) / (maxY - minY) * (displayMinY - displayMaxY)
@@ -197,14 +198,14 @@ class AxisDrawer(
         drawThinLine(displayMinX, displayMaxY, displayMinX, displayMinY)
         getTicks(minX, maxX).forEach{ tickX ->
             drawThinLine(transformX(tickX), displayMaxY + tickW, transformX(tickX), displayMaxY)
-            drawSmallText(transformX(tickX), displayMaxY + tickCaptionOffsetRatio * h, tickX.toString())
+            drawSmallText(transformX(tickX), displayMaxY + xTickCaptionOffset, tickX.toString())
         }
-        drawSmallText(displayMaxX + xAxisCaptionDx, displayMaxY + xAxisCaptionDy, xName)
+        drawSmallText(xAxisCaptionX, xAxisCaptionY, xName)
         getTicks(minY, maxY).forEach { tickY ->
             drawThinLine(displayMinX, transformY(tickY), displayMinX - tickW, transformY(tickY))
-            drawSmallText(displayMinX - tickCaptionOffsetRatio * w, transformY(tickY), tickY.toString())
+            drawSmallText(displayMinX - yTickCaptionOffset, transformY(tickY), tickY.toString())
         }
-        drawSmallText(displayMinX + yAxisCaptionDx, displayMinY + yAxisCaptionDy, yName)
+        drawSmallText(yAxisCaptionX, yAxisCaptionY, yName)
     }
 
     fun drawMatrix(matrix: Array<FloatArray>) {
