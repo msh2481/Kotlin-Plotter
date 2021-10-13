@@ -1,3 +1,5 @@
+import org.jetbrains.skija.*
+import java.io.File
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -21,268 +23,216 @@ fun getTicks(l: Float, r: Float) : List<Float> {
     return result
 }
 
-val DAWN_COLORMAP = """
-    255 255 195
-    255 255 194
-    255 255 193
-    255 255 191
-    255 255 190
-    255 255 189
-    255 255 188
-    255 255 187
-    255 255 186
-    255 255 185
-    255 255 184
-    255 255 183
-    255 255 182
-    255 255 181
-    255 255 179
-    255 255 178
-    255 255 177
-    255 255 176
-    255 255 175
-    255 255 174
-    255 255 173
-    255 255 172
-    255 255 171
-    255 255 170
-    255 255 169
-    255 255 167
-    255 255 166
-    255 255 165
-    255 255 164
-    255 255 163
-    255 255 162
-    255 255 161
-    255 255 160
-    255 255 159
-    255 255 158
-    255 255 157
-    255 255 155
-    255 255 154
-    255 255 153
-    255 255 152
-    255 255 151
-    255 255 150
-    255 255 149
-    255 255 148
-    255 255 147
-    255 255 146
-    255 255 145
-    255 255 143
-    255 255 142
-    255 255 141
-    255 255 140
-    255 255 139
-    255 255 138
-    255 255 137
-    255 255 136
-    255 255 135
-    255 255 134
-    255 255 133
-    255 255 131
-    255 255 130
-    255 255 129
-    255 255 128
-    255 255 127
-    255 255 126
-    255 255 125
-    255 253 125
-    255 251 125
-    255 249 125
-    255 247 125
-    255 245 125
-    255 242 125
-    255 241 125
-    255 238 125
-    255 237 125
-    255 235 125
-    255 233 125
-    255 231 125
-    255 229 126
-    255 227 126
-    255 225 126
-    255 223 126
-    255 221 126
-    255 219 126
-    255 217 126
-    255 215 126
-    255 213 126
-    255 211 126
-    255 209 126
-    255 207 126
-    255 205 126
-    255 203 126
-    255 201 126
-    255 199 126
-    255 197 126
-    255 195 126
-    255 193 126
-    255 191 126
-    255 189 126
-    255 187 126
-    255 185 126
-    255 183 126
-    255 181 126
-    255 179 126
-    255 177 126
-    255 175 126
-    255 173 126
-    255 171 126
-    255 169 126
-    255 167 126
-    255 165 126
-    255 163 126
-    255 161 126
-    255 159 126
-    255 157 126
-    255 155 126
-    255 153 126
-    255 151 126
-    255 149 126
-    255 147 126
-    255 145 127
-    255 143 127
-    255 141 127
-    255 138 127
-    255 136 127
-    255 134 127
-    255 132 127
-    255 131 127
-    255 129 127
-    254 126 127
-    252 125 127
-    250 122 127
-    248 121 127
-    246 118 127
-    244 116 127
-    242 115 127
-    240 113 127
-    238 111 127
-    236 109 127
-    234 107 127
-    232 105 127
-    230 102 127
-    228 100 127
-    226 98 127
-    224 97 127
-    222 94 127
-    220 93 127
-    218 91 127
-    216 89 127
-    214 87 127
-    212 84 127
-    210 83 127
-    208 81 127
-    206 79 127
-    204 77 127
-    202 75 127
-    200 73 127
-    198 70 127
-    196 68 127
-    194 66 127
-    192 64 127
-    190 63 127
-    188 61 127
-    186 59 127
-    184 57 127
-    182 54 127
-    180 52 127
-    178 51 127
-    176 49 127
-    174 47 127
-    171 44 127
-    169 42 127
-    167 40 127
-    165 39 127
-    163 37 127
-    161 34 127
-    159 33 127
-    157 31 127
-    155 29 127
-    153 27 127
-    151 25 127
-    149 22 127
-    147 20 127
-    145 18 127
-    143 17 127
-    141 14 127
-    139 13 127
-    137 11 127
-    135 9 127
-    133 6 127
-    131 4 127
-    129 2 127
-    127 0 127
-    125 0 127
-    123 0 127
-    121 0 127
-    119 0 127
-    117 0 127
-    115 0 127
-    113 0 127
-    111 0 127
-    109 0 127
-    107 0 127
-    105 0 127
-    103 0 127
-    101 0 127
-    99 0 127
-    97 0 127
-    95 0 127
-    93 0 127
-    91 0 127
-    89 0 127
-    87 0 126
-    85 0 126
-    83 0 126
-    82 0 126
-    80 0 126
-    78 0 126
-    76 0 126
-    74 0 126
-    72 0 126
-    70 0 126
-    68 0 126
-    66 0 126
-    64 0 126
-    62 0 126
-    60 0 126
-    58 0 126
-    56 0 126
-    54 0 126
-    52 0 126
-    50 0 126
-    48 0 126
-    46 0 126
-    44 0 126
-    42 0 126
-    40 0 126
-    38 0 126
-    36 0 126
-    34 0 126
-    32 0 126
-    30 0 126
-    28 0 126
-    26 0 126
-    24 0 126
-    22 0 126
-    20 0 126
-    18 0 126
-    16 0 126
-    14 0 126
-    12 0 126
-    10 0 126
-    8 0 126
-    6 0 126
-    4 0 126
-    2 0 126
-    0 0 126
-""".trimIndent().split('\n').reversed().map{
-    it.split(' ').map(String::toInt).fold(255) { acc, elem -> acc * 256 + elem }
-}
-
 fun valueToColor(value: Int) : Int {
     check(value in 0..255) { "expected [0;256] but got $value" }
     return DAWN_COLORMAP[value]
+}
+
+data class DataSeries(val name: String, val data: List<Float>)
+
+fun readCSV(filename: String): List<DataSeries>? {
+    Log("starting with filename=$filename", "in readCSV")
+    val matrix: List<List<String>> = File(filename).readLines().map{ it.split(',') }
+    val n = matrix.size
+    if (n == 0) {
+        Log("The file is empty", "in readCSV", "error")
+        println("The file is empty")
+        return null
+    }
+    val m = matrix[0].size
+    matrix.forEach {
+        if (it.size != m) {
+            Log("First row has $m columns, but now found row with ${it.size} columns", "in readCSV", "error")
+            println("First row has $m columns, but now found row with ${it.size} columns")
+            return null
+        }
+    }
+    Log("read matrix $n x $m", "in readCSV")
+    val dataframe = mutableListOf<DataSeries>()
+    for (j in 0 until m) {
+        val data = mutableListOf<Float>()
+        for (i in 1 until n) {
+            val cur = matrix[i][j].toFloatOrNull()
+            if (cur == null) {
+                Log("$i-th element of $j-th data series can't be converted to float: ${matrix[i][j]}", "in readCSV", "error")
+                println("$i-th element of $j-th data series can't be converted to float: ${matrix[i][j]}")
+                return null
+            }
+            data.add(cur)
+        }
+        dataframe.add(DataSeries(matrix[0][j], data))
+    }
+    return dataframe
+}
+
+fun readData(minN: Int, maxN: Int) : List<DataSeries>? {
+    Log("starting", "in readData")
+    require(minN <= maxN) {"minN <= maxN"}
+    val filename = requireNotNull(parsedArgs["--data"]){"--data != null since parseArgs"}
+    val df = readCSV(filename)
+    if (df == null) {
+        Log("Something went wrong when reading csv", "error", "in readData")
+        println("Something went wrong when reading csv")
+        return null
+    }
+    if (df.size !in minN..maxN) {
+        Log("Need $minN..$maxN data series for this plot but got $df.size", "in readData", "error")
+        println("Need 2 or 3 data series for kde plot but got $df.size")
+        return null
+    }
+    if (df[0].data.isEmpty()) {
+        Log("Need at least one point but got empty series", "in readData", "error")
+        println("Need at least one point but got empty series")
+        return null
+    }
+    return df
+}
+
+fun findXYBounds(df: List<DataSeries>) : List<Float> {
+    val n = df.size
+    val m = df[0].data.size
+    var minX : Float? = null
+    var maxX : Float? = null
+    var minY : Float? = null
+    var maxY : Float? = null
+    for (series in 0 until n) {
+        for (point in 0 until m) {
+            val cur = df[series].data[point]
+            if (series == 0) {
+                if (minX == null || minX > cur) {
+                    minX = cur
+                }
+                if (maxX == null || maxX < cur) {
+                    maxX = cur
+                }
+            } else {
+                if (minY == null || minY > cur) {
+                    minY = cur
+                }
+                if (maxY == null || maxY < cur) {
+                    maxY = cur
+                }
+            }
+        }
+    }
+    requireNotNull(minX) { "minX != null" }
+    requireNotNull(maxX) { "maxX != null" }
+    requireNotNull(minY) { "minY != null" }
+    requireNotNull(maxY) { "maxY != null" }
+
+    if (minX == maxX) {
+        minX -= 1
+        maxX += 1
+    }
+    if (minY == maxY) {
+        minY -= 1
+        maxY += 1
+    }
+    return listOf(minX, maxX, minY, maxY)
+}
+
+fun findZBounds(matrix: Array<FloatArray>) : List<Float> {
+    var minZ : Float? = null
+    var maxZ : Float? = null
+    for (row in matrix) {
+        for (z in row) {
+            if (minZ == null || minZ > z) {
+                minZ = z
+            }
+            if (maxZ == null || maxZ < z) {
+                maxZ = z
+            }
+        }
+    }
+    requireNotNull(minZ) { "minZ != null" }
+    requireNotNull(maxZ) { "maxZ != null" }
+    if (maxZ == minZ) {
+        minZ -= 1
+        maxZ += 1
+    }
+    return listOf(minZ, maxZ)
+}
+
+class AxisDrawer(
+    private val canvas: Canvas,
+    private val canvas2: Canvas,
+    private val w: Int,
+    private val h: Int,
+    private val minX: Float,
+    private val maxX: Float,
+    private val minY: Float,
+    private val maxY: Float) {
+
+    private val displayMinX = 0.1f * w
+    private val displayMaxX = 0.9f * w
+    private val displayMinY = 0.1f * h
+    private val displayMaxY = 0.9f * h
+    private val fontSize = 0.008f * (w + h)
+    private val tickW = 0.002f * (w + h)
+    private val tickCaptionOffsetRatio = 0.05f
+    private val xAxisCaptionDx = 0.01f * w
+    private val xAxisCaptionDy = 0f
+    private val yAxisCaptionDx = -0.01f * w
+    private val yAxisCaptionDy = -0.03f * h
+
+    private fun transformX(x: Float) : Float = displayMinX + (x - minX) / (maxX - minX) * (displayMaxX - displayMinX)
+    private fun transformY(y: Float) : Float = displayMaxY + (y - minY) / (maxY - minY) * (displayMinY - displayMaxY)
+
+    private fun drawThinLine(x0: Float, y0: Float, x1: Float, y1: Float) {
+        val linePaint = Paint().setARGB(255, 0, 0, 0).setStrokeWidth(1f)
+        canvas.drawLine(x0, y0, x1, y1, linePaint)
+        canvas2.drawLine(x0, y0, x1, y1, linePaint)
+    }
+    private fun drawSmallText(x: Float, y: Float, s: String) {
+        val typeface = Typeface.makeFromFile("fonts/JetBrainsMono-Regular.ttf")
+        val font = Font(typeface, fontSize)
+        val textPaint = Paint().setARGB(255, 0, 0, 0).setStrokeWidth(1f)
+        canvas.drawString(s, x, y, font, textPaint)
+        canvas2.drawString(s, x, y, font, textPaint)
+    }
+
+    fun drawAxis(xName: String, yName: String) {
+        Log("starting", "in drawAxis")
+        drawThinLine(displayMinX, displayMaxY, displayMaxX, displayMaxY)
+        drawThinLine(displayMinX, displayMaxY, displayMinX, displayMinY)
+        getTicks(minX, maxX).forEach{ tickX ->
+            drawThinLine(transformX(tickX), displayMaxY + tickW, transformX(tickX), displayMaxY)
+            drawSmallText(transformX(tickX), displayMaxY + tickCaptionOffsetRatio * h, tickX.toString())
+        }
+        drawSmallText(displayMaxX + xAxisCaptionDx, displayMaxY + xAxisCaptionDy, xName)
+        getTicks(minY, maxY).forEach { tickY ->
+            drawThinLine(displayMinX, transformY(tickY), displayMinX - tickW, transformY(tickY))
+            drawSmallText(displayMinX - tickCaptionOffsetRatio * w, transformY(tickY), tickY.toString())
+        }
+        drawSmallText(displayMinX + yAxisCaptionDx, displayMinY + yAxisCaptionDy, yName)
+    }
+
+    fun drawMatrix(matrix: Array<FloatArray>) {
+        Log("starting", "in drawMatrix")
+        val resolution = matrix.size
+        fun cellX(x: Int) : Float = displayMinX + x / resolution.toFloat() * (displayMaxX - displayMinX)
+        fun cellY(y: Int) : Float = displayMaxY + y / resolution.toFloat() * (displayMinY - displayMaxY)
+        fun drawCell(x: Int, y: Int, sz: Int, value: Int) {
+            Log("starting", "in drawKDECell")
+            require(value in 0..255) {"0 <= value < 256"}
+            val cellColor = valueToColor(value)
+            val cellPaint = Paint().setColor(cellColor)
+            canvas.drawRect(Rect(cellX(x), cellY(y), cellX(x + sz), cellY(y + sz)), cellPaint)
+            canvas2.drawRect(Rect(cellX(x), cellY(y), cellX(x + sz), cellY(y + sz)), cellPaint)
+        }
+        val (minZ, maxZ) = findZBounds(matrix)
+        fun zToValue(z: Float) : Int = ((z - minZ) / (maxZ - minZ) * 255).roundToInt()
+        drawCell(0, 0, resolution, 0)
+        for (x in 0 until resolution) {
+            for (y in 0 until resolution) {
+                drawCell(x, y, 1, zToValue(matrix[x][y]))
+            }
+        }
+    }
+
+    fun drawPoint(x: Float, y: Float, color: Int, r: Float = 2f) {
+        val pointPaint = Paint().setColor(color)
+        canvas.drawCircle(transformX(x), transformY(y), r, pointPaint)
+        canvas2.drawCircle(transformX(x), transformY(y), r, pointPaint)
+    }
 }
