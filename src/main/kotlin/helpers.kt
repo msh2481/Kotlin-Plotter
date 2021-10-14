@@ -126,8 +126,8 @@ fun readData(minN: Int, maxN: Int) : List<DataSeries>? {
         return null
     }
     if (df.size !in minN..maxN) {
-        Log("Need $minN..$maxN data series for this plot but got $df.size", "in readData", "error")
-        println("Need 2 or 3 data series for kde plot but got $df.size")
+        Log("Need $minN..$maxN data series for this plot but got ${df.size}", "in readData", "error")
+        println("Need 2 or 3 data series for kde plot but got ${df.size}")
         return null
     }
     if (df.any{ it.data.isEmpty() }) {

@@ -70,17 +70,18 @@ fun parseArgs(args: Array<String>) : Map<String, String> {
 }
 
 var parsedArgs : Map<String, String> = mutableMapOf()
+var W = 1600
+var H = W / 2
 
 fun main(args: Array<String>) {
     Log("starting", "in main")
     println(help)
     parsedArgs = parseArgs(args)
+    W = parsedArgs["--width"]?.toIntOrNull() ?: 1600
+    H = parsedArgs["--height"]?.toIntOrNull() ?: (W / 2)
     createWindow("Your plot")
     Log("finishing", "in main")
 }
-
-val W = 1600 //parsedArgs["--width"]?.toIntOrNull() ?: 1600
-val H = 800 //parsedArgs["--height"]?.toIntOrNull() ?: (W / 2)
 
 fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     val window = SkiaWindow()
@@ -91,7 +92,7 @@ fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     window.layer.addMouseMotionListener(MyMouseMotionAdapter)
 
     window.preferredSize = Dimension(W, H)
-    window.minimumSize = Dimension(100,100)
+    window.minimumSize = Dimension(W,H)
     window.pack()
     window.layer.awaitRedraw()
     window.isVisible = true
