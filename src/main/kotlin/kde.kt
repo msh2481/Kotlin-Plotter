@@ -40,7 +40,7 @@ fun divideMatrices(numerator: Array<FloatArray>, denominator: Array<FloatArray>)
 
 fun kde(canvas: Canvas, canvas2: Canvas, w: Int, h: Int, algo: KDEAlgorithm) {
     Log("starting", "in kde")
-    val resolution = parsedArgs["resolution"]?.toIntOrNull() ?: 64
+    val resolution = 100 //parsedArgs["resolution"]?.toIntOrNull() ?: 64
     var df = readData(2, 3) ?: return
     if (df.size == 2) {
         df = df + DataSeries("values", List(df[0].data.size){1f})

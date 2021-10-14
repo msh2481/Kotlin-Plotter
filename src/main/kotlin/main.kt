@@ -52,7 +52,16 @@ object Log {
 }
 
 val help = """
-    $ plot --type=scatter --data=data.csv --output=plot.png
+    Usage: plot [OPTIONS]
+    
+    Mandatory options:
+    --type=ENUM             ENUM is one of 'scatter', 'line', 'kde-sum', 'kde-average'
+    --data=FILE             read input from FILE
+    
+    Other options:
+    --output=FILE           save plot as picture to FILE
+    --blur-size=NUM         more blurring for bigger NUM (only for 'line', 'kde-sum', 'kde-average')
+    --middle-points=NUM     number of points to add in interpolation (only for 'line')
 """.trimIndent()
 
 fun parseArgs(args: Array<String>) : Map<String, String> {
@@ -68,10 +77,10 @@ fun parseArgs(args: Array<String>) : Map<String, String> {
         argsMap[key] = value
         Log("$key = $value", "in parseArgs")
     }
-    for (mandatory in listOf("--type", "--data", "--output")) {
+    for (mandatory in listOf("--type", "--data")) {
         if (argsMap[mandatory] == null) {
-            Log("Missed mandatory argument $mandatory, terminating", "in parseArgs", "error")
-            println("Missed mandatory argument $mandatory, terminating")
+            Log("Missed mandatory option $mandatory, terminating", "in parseArgs", "error")
+            println("Missed mandatory option $mandatory, terminating")
             exitProcess(0)
         }
     }
@@ -83,6 +92,7 @@ var parsedArgs : Map<String, String> = mutableMapOf()
 
 fun main(args: Array<String>) {
     Log("starting", "in main")
+    println(help)
     parsedArgs = parseArgs(args)
     createWindow("Your plot")
     Log("finishing", "in main")
@@ -133,14 +143,15 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         val pngData = image.encodeToData(EncodedImageFormat.PNG)
         val pngBytes: ByteBuffer = pngData!!.toByteBuffer()
         try {
-            val output = requireNotNull(parsedArgs["--output"]) {"--output should be not null since parseArgs"}
-            val path = Path(output)
-            val channel: ByteChannel = Files.newByteChannel(
-                path,
-                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
-            )
-            channel.write(pngBytes)
-            channel.close()
+            parsedArgs["--output"]?.let{ output ->
+                val path = Path(output)
+                val channel: ByteChannel = Files.newByteChannel(
+                    path,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
+                )
+                channel.write(pngBytes)
+                channel.close()
+            }
         } catch (e: IOException) {
             println("Failed to write output file")
             Log("caught $e", "in onRender", "error", "exception")

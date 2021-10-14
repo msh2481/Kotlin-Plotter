@@ -1,5 +1,6 @@
 import org.jetbrains.skija.Canvas
 import org.jetbrains.skija.Point
+import java.io.File
 import kotlin.random.Random
 
 fun interpolate(arr: List<Float>, middlePoints: Int, blurSize: Int) : List<Float> {
@@ -24,12 +25,28 @@ fun interpolate(arr: List<Float>, middlePoints: Int, blurSize: Int) : List<Float
     return big
 }
 
+fun saveToFile(points: List<Point>, filename: String) {
+    Log("starting", "in saveToFile")
+    File(filename).writeText(buildString {
+        points.forEach { pt ->
+            appendLine("${pt.x}, ${pt.y}")
+        }
+    })
+}
+
 fun plotLine(drawer: AxisDrawer, xs: DataSeries, ys: DataSeries, color: Int) {
+    Log("starting", "in plotLine")
     val middlePoints = parsedArgs["--middle-points"]?.toIntOrNull() ?: 0
     val blurSize = parsedArgs["--blur-size"]?.toIntOrNull() ?: 0
     val fixedXs = interpolate(xs.data, middlePoints, blurSize)
     val fixedYs = interpolate(ys.data, middlePoints, blurSize)
     val points = (fixedXs zip fixedYs).map{ (x, y) -> Point(x, y) }
+    try {
+        saveToFile(points, "preprocessed.csv")
+    } catch (e: Exception) {
+        Log("Can't save preprocessed data", "in plotLine", "error")
+        println("Can't save preprocessed data")
+    }
     drawer.drawLine(points, color)
     points.forEach{ pt -> drawer.drawPoint(pt.x, pt.y, color) }
 }
