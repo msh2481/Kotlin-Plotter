@@ -200,7 +200,7 @@ class AxisDrawer(
     private val yAxisCaptionX = displayMinX - 2 * yTickCaptionOffset
     private val yAxisCaptionY = (displayMinY + displayMaxY) / 2
     private val legendX = displayMaxX + w * 0.1f
-    private val legendY = displayMinY
+    private val legendY = displayMinY + h * 0.1f
     private val legendOffset = fontSize * 2
     private val legendFrame = 0.02f * (h + w)
 
@@ -283,6 +283,7 @@ class AxisDrawer(
                 drawCell(x, y, 1, zToValue(matrix[x][y]))
             }
         }
+        drawLegend(listOf("min z = $minZ", "max z = $maxZ"), listOf(0xFF000000.toInt(), 0xFF000000.toInt()))
     }
 
     fun drawPoint(x: Float, y: Float, color: Int, r: Float = 2f) {

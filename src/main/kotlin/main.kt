@@ -37,6 +37,7 @@ val help = """
     --output=FILE           save plot as picture to FILE
     --blur-size=NUM         more blurring for bigger NUM (only for 'line', 'kde-sum', 'kde-average')
     --middle-points=NUM     number of points to add in interpolation (only for 'line')
+    --resolution=NUM        to use NUMxNUM matrix for KDE (only for 'kde-sum' and 'kde-average')
 """.trimIndent()
 
 /**
