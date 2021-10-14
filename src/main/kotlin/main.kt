@@ -1,21 +1,20 @@
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
-import kotlinx.datetime.Clock
-import org.jetbrains.skija.*
+import org.jetbrains.skija.Canvas
+import org.jetbrains.skija.EncodedImageFormat
+import org.jetbrains.skija.Surface
 import org.jetbrains.skiko.SkiaLayer
 import org.jetbrains.skiko.SkiaRenderer
 import org.jetbrains.skiko.SkiaWindow
 import java.awt.Dimension
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
-import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
-import java.util.*
 import javax.swing.WindowConstants
 import kotlin.io.path.Path
 import kotlin.system.exitProcess
@@ -23,33 +22,9 @@ import kotlin.system.exitProcess
 
 /** TODO
  * Docs, readme
- * remove i, j
  * unit test interpolate, getTicks
  * test every parameter
- * test multiple data series
- * kde-average, line, histogram
  */
-
-fun prettyTime() = Clock.System.now().toString().substring(0, 19).replace(':', '-')
-
-object Log {
-    private val file = File("log${prettyTime()}.txt")
-    private val tagsCounter: MutableMap<SortedSet<String>, Int> = mutableMapOf()
-    var predicate : (Array<out String>) -> Boolean = fun(tags: Array<out String>): Boolean {
-        val tagSet = tags.toSortedSet()
-        val prevCnt = tagsCounter.getOrDefault(tagSet, 0)
-        tagsCounter[tagSet] = prevCnt + 1
-        if (prevCnt > 10) {
-            return false
-        }
-        return true
-    }
-    operator fun invoke(message: String, vararg tags: String) {
-        if (predicate(tags)) {
-            file.appendText("${prettyTime()} | ${tags.toList()} | $message\n")
-        }
-    }
-}
 
 val help = """
     Usage: plot [OPTIONS]
@@ -64,6 +39,9 @@ val help = """
     --middle-points=NUM     number of points to add in interpolation (only for 'line')
 """.trimIndent()
 
+/**
+ * Creates a map from given command line arguments. Expects them in form --name=value.
+ */
 fun parseArgs(args: Array<String>) : Map<String, String> {
     Log("starting", "in parseArgs")
     val argsMap = mutableMapOf<String, String>()
@@ -98,6 +76,9 @@ fun main(args: Array<String>) {
     Log("finishing", "in main")
 }
 
+val W = 1600
+val H = 800
+
 fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     val window = SkiaWindow()
     window.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
@@ -106,13 +87,16 @@ fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     window.layer.renderer = Renderer(window.layer)
     window.layer.addMouseMotionListener(MyMouseMotionAdapter)
 
-    window.preferredSize = Dimension(800, 800)
+    window.preferredSize = Dimension(W, H)
     window.minimumSize = Dimension(100,100)
     window.pack()
     window.layer.awaitRedraw()
     window.isVisible = true
 }
 
+/**
+ * Selects appropriate plotting function from a map based on command line arguments. Also handles all other graphics.
+ */
 class Renderer(val layer: SkiaLayer): SkiaRenderer {
     override fun onRender(canvas: Canvas, width: Int, height: Int, nanoTime: Long) {
         Log("starting", "in onRender")
@@ -122,7 +106,7 @@ class Renderer(val layer: SkiaLayer): SkiaRenderer {
         val h = (height / contentScale).toInt()
 
         val plots = mutableMapOf<String, () -> Unit >()
-        val surface = Surface.makeRasterN32Premul(800, 800)
+        val surface = Surface.makeRasterN32Premul(W, H)
         plots["scatter"] = { scatter(canvas, surface.canvas, w, h) }
         plots["kde-sum"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.SUM) }
         plots["kde-average"] = { kde(canvas, surface.canvas, w, h, KDEAlgorithm.AVERAGE) }

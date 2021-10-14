@@ -58,10 +58,14 @@ fun line(canvas: Canvas, canvas2: Canvas, w: Int, h: Int) {
     val drawer = AxisDrawer(canvas, canvas2, w, h, minX, maxX, minY, maxY)
 
     drawer.drawAxis("x", "y")
-    val seededRandom = Random(1)
+    val seededRandom = Random(2)
     val xSeries = df[0]
     val maxColor = 256 * 256 * 256
+    val colors = mutableListOf(-maxColor)
     df.drop(1).forEach{ ySeries ->
-        plotLine(drawer, xSeries, ySeries, seededRandom.nextInt(maxColor) - maxColor)
+        val color = seededRandom.nextInt(maxColor) - maxColor
+        plotLine(drawer, xSeries, ySeries, color)
+        colors.add(color)
     }
+    drawer.drawLegend(df.map{ it.name }, colors)
 }

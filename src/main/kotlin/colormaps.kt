@@ -1,3 +1,6 @@
+/**
+ * This file is just a list of colormaps and they colors in range 0..255
+ */
 val DAWN_COLORMAP = """
     255 255 195
     255 255 194
