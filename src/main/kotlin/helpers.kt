@@ -216,7 +216,8 @@ class AxisDrawer(
         canvas2.drawLine(x0, y0, x1, y1, linePaint)
     }
     private fun drawSmallText(x: Float, y: Float, s: String, color: Int = 0xFF000000.toInt()) {
-        val typeface = Typeface.makeFromFile("fonts/JetBrainsMono-Regular.ttf")
+//        val typeface = Typeface.makeFromFile("fonts/JetBrainsMono-Regular.ttf")
+        val typeface = FontMgr.getDefault().matchFamilyStyle("Comic Sans MS", FontStyle.NORMAL);
         val font = Font(typeface, fontSize)
         val textPaint = Paint().setColor(color)
         canvas.drawString(s, x, y, font, textPaint)
