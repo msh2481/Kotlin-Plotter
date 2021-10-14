@@ -34,10 +34,12 @@ val help = """
     --data=FILE             read input from FILE
     
     Other options:
-    --output=FILE           save plot as picture to FILE
-    --blur-size=NUM         more blurring for bigger NUM (only for 'line', 'kde-sum', 'kde-average')
-    --middle-points=NUM     number of points to add in interpolation (only for 'line')
-    --resolution=NUM        to use NUMxNUM matrix for KDE (only for 'kde-sum' and 'kde-average')
+    --output=FILE           save plot as picture to FILE, no output file by default
+    --blur-size=NUM         more blurring for bigger NUM (only for 'line', 'kde-sum', 'kde-average'), 0 by default
+    --middle-points=NUM     number of points to add in interpolation (only for 'line'), 0 by default
+    --resolution=NUM        use NUMxNUM matrix for KDE (only for 'kde-sum' and 'kde-average'), 64 by default
+    --width=NUM             set width of both screen and file pictures to NUM, 1600 by default
+    --height=NUM            set height of both screen and file pictures to NUM, width / 2 by default
 """.trimIndent()
 
 /**
@@ -77,8 +79,8 @@ fun main(args: Array<String>) {
     Log("finishing", "in main")
 }
 
-val W = 1600
-val H = 800
+val W = 1600 //parsedArgs["--width"]?.toIntOrNull() ?: 1600
+val H = 800 //parsedArgs["--height"]?.toIntOrNull() ?: (W / 2)
 
 fun createWindow(title: String) = runBlocking(Dispatchers.Swing) {
     val window = SkiaWindow()
