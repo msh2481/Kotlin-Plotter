@@ -41,7 +41,7 @@ object Log {
  * And now ticks are all multiples of k in given range, so we have from 6 to 10 ticks.
  */
 fun getTicks(l: Float, r: Float) : List<Float> {
-    fun countTicks(k: Float) = (floor(r / k) - ceil(l / k)).roundToInt()
+    fun countTicks(k: Float) = (floor(r / k) - ceil(l / k) + 1).roundToInt()
     var k = 1.0f
     while (countTicks(k) > 10) {
         k *= 10

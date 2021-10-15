@@ -21,7 +21,6 @@ import kotlin.system.exitProcess
 
 
 /** TODO
- * Docs, readme
  * unit test interpolate, getTicks
  * test every parameter
  */
@@ -74,6 +73,8 @@ var W = 1600
 var H = W / 2
 
 fun main(args: Array<String>) {
+    println(KotlinVersion.CURRENT)
+    println("v" + System.getProperty("java.version"))
     Log("starting", "in main")
     println(help)
     parsedArgs = parseArgs(args)
