@@ -1,48 +1,38 @@
-# Курс основ программирования на МКН СПбГУ
-## Проект 3: визуализация данных
+# Basics of programming course: data vizualization tool
 
-[Постановка задачи](./TASK.md)
+## Running the plotter
+Just run it with any arguments and you will see help text with all available options and their values. 
 
-## Как пользоваться программой?
-Просто запустите её, в консоль будет выведена справка об поддерживаемых опциях.
-
-## Что она умеет?
+## Overview of different plot types
 
 ### Scatter
-Это не самая сложная функция, все её возможности демонстрируются одним примером:
+It's not very complicated type, so all of its capabilities are demonstrated by one example:
 ![img.png](img.png)
 
-### Line plot
-Тут уже появляются параметры. Посмотрим на данные с какой-то работы по физике у моего знакомого:
+### Line
+Here go the parameters. Let's take data from a school physical experiment and try to plot it:
 ![img_1.png](img_1.png)
-Хоть у него и получился довольно ровный график, хотелось бы его сгладить ещё больше:
+Though it's very accurate, it will be good to make it smoother:
 ![img_2.png](img_2.png)
-Кажется, это не совсем то, что мы хотели, некоторая информация при таком сглаживании потерялась.
-Чтобы уменьшить этот эффект, добавим на каждый отрезок по несколько дополнительних точек.
+Seems like it's not what we wanted, because some information was lost.
+To counter this effect let's add more points to each segment before smoothing.
 ![img_3.png](img_3.png)
-Наконец, график получился плавным и точным одновременно.
+Finally, a graphic that can do it both.
 
-Как и в scatter, здесь можно строить график для нескольких наборов сразу:
+Same as in scatter, line plot can contain many data series at once (one column for x and many for ys) 
 ![img_4.png](img_4.png)
 
 ### [KDE](https://en.wikipedia.org/wiki/Kernel_density_estimation)
-Тут есть два подрежима: первый в некотором смысле суммирует значения, а второй -- усредняет.
-Вместо того, чтобы пытаться дать формальные определения, посмотрим на различия между ними на двух примерах.
-
+It has two subtypes, one finds something like sum of values per unity area, while other finds average value (and equals to first divided by density of data at that point).
+To understand the difference better let's look at them on two dataseries:
 #### Sum
 ![img_5.png](img_5.png)
 ![img_6.png](img_6.png)
 #### Average
 ![img_8.png](img_8.png)
 ![img_9.png](img_9.png)
-#### Различия
-В первом примере были даны точки (x, y) подчиняющиеся распределению, близкому к нормальному.
-Значений у них не было, поэтому каждой по умолчанию алгоритм поставил 1. На графике sum получили график плотности этих точек,
-а на графике average получили 1 везде, докуда дошло размытие (т.к. среднее значение везде 1).
-А во втором примере точки были сгенерированы равномерно, а вот значение зависело от радиуса. На графике sum мы видим комбинацию этой зависимости и случайности распределения точек.
-Зато на average в данном случае получаем очень точный график этой зависимости (т.к. почти все случайности просто сгладились).
 
-## Немного красивых и бесполезных графиков
+## And a few other funny plots 
 ![img_10.png](img_10.png)
 ![img_11.png](img_11.png)
 ![img_12.png](img_12.png)
